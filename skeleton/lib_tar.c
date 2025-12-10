@@ -17,7 +17,48 @@
  */
 int check_archive(int tar_fd) {
     // TODO
-    return 0;
+    int numberHeader = 0;
+    unsigned char buffer[512];
+    int len_block = read(tar_fd, buffer, 512);
+    bool blockIsEmpty = true;
+    int errorType = 0;
+    if (len_block == 512){
+        for (int i = 0, i < 512, i++){ // on boucle sur les 512 octets du bloc
+            if (buffer[i] != 0){
+                blockIsEmpty = false;
+            }
+        }
+        if (blockIsEmpty){ // Si le bloc est vide, alors on est à la fin
+            return numberHeader
+        } else { // Si c'est pas vide alors on regarde si c'est un header complet ou non 
+            // Vérification de magic => buffer[257 => 257 + 6]
+            if (buffer[257] != 'u' || buffer[258] != 's' || buffer[259] != 't' || buffer[260] != 'a' || buffer[261] != 'r' || buffer[262] != '\0'){
+                // magic uncompleted => error type = -1 
+                errorType = -1;
+            } 
+            // Vérification que version = 00 => buffer [263 et 264]
+            else if(buffer[263] != '0' || buffer[264] != '0'){
+                errorType = -2;
+            }
+            // Vérification du checksum buffer[148 => 148 + 8]
+            int checksum = 0;
+            for (int i = 148; i < 156; i++){
+                checksum += buffer[i];
+            }
+            int sommeBuffer = 0;
+            for (int i = 0; i < 512; i++){
+                if (148 <= i && i <= 155){
+                    sommeBuffer += ' ';
+                } else {
+                    sommeBuffer += buffer[i];
+                }
+            }
+            else if(checksum != sommeBuffer){
+                errorType = -3;
+            }
+        }
+    }
+    return numberHeader;
 }
 
 /**
