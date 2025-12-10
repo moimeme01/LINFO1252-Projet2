@@ -79,6 +79,44 @@ int check_archive(int tar_fd) {
  */
 int exists(int tar_fd, char *path) {
     // TODO
+    for(;;){
+        unsigned char buffer[512];
+        int len_block = read(tar_fd, buffer, 512);
+        tar_header_t *header = (tar_header_t *)buffer;
+        bool blockIsEmpty = true;
+        if (len_block == 512){
+            for (int i = 0; i < 512; i++){ // on boucle sur les 512 octets du bloc
+                if (buffer[i] != 0){
+                    blockIsEmpty = false;
+                }
+            }
+            if (blockIsEmpty){ // Si le bloc est vide, alors on est à la fin
+                return 0;
+            } else {
+                // Le header n'est pas vide, on peut donc comparer si il est égal au path
+                int isEqual = 1;
+                int lenPath = strlen(path);
+                int lenName = strlen(header->name);
+                if (lenName == lenPath){
+                    for (int i = 0; i < lenName; i++){
+                        if (header->name[i] != path[i]){
+                            isEqual = 0;
+                            break;
+                        }
+                    }
+                } else {
+                    isEqual = 0;
+                }
+                // Si on a passé tout le for et que isEqual = 1, alors on a un match
+                if (isEqual == 1){
+                    return 1;
+                }
+                // Si non alors on continue
+            }
+        } else {
+            return 0;
+        }
+    }
     return 0;
 }
 
